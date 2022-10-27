@@ -10,6 +10,8 @@ import {
 import { TiDeleteOutline } from 'react-icons/ti';
 import { urlFor } from '../lib/client';
 import numeral from 'numeral';
+import getStripe from '../lib/getStripe';
+import toast from 'react-hot-toast';
 
 const Cart = () => {
   const cartRef = useRef();
@@ -21,6 +23,27 @@ const Cart = () => {
     toggleCartItemQuantity,
     onRemove,
   } = useStateContext();
+
+  const handleCheckout = async () => {
+    const stripe = await getStripe();
+
+    const response = await fetch('/api/stripe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(cartItems),
+    });
+
+    if (response.statusCode === 500) return;
+
+    const data = await response.json();
+    console.log(data);
+
+    toast.loading('Redirecting...');
+
+    stripe.redirectToCheckout({ sessionId: data.id });
+  };
 
   return (
     <div className="cart-wrapper" ref={cartRef}>
@@ -62,7 +85,7 @@ const Cart = () => {
                 <div className="item-desc">
                   <div className="flex top">
                     <h5>{item.name}</h5>
-                    <h4>₦{numeral(item.price).format('0,0')}</h4>
+                    <h4>${numeral(item.price).format('0,0')}</h4>
                   </div>
 
                   <div className="flex bottom">
@@ -107,11 +130,11 @@ const Cart = () => {
           <div className="cart-bottom">
             <div className="total">
               <h3>Subtotal:</h3>
-              <h3>₦{numeral(totalPrice).format('0,0')}</h3>
+              <h3>${numeral(totalPrice).format('0,0')}</h3>
             </div>
 
             <div className="btn-container">
-              <button type="button" className="btn" onClick="">
+              <button type="button" className="btn" onClick={handleCheckout}>
                 PAY WITH STRIPE
               </button>
             </div>
