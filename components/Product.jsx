@@ -15,7 +15,9 @@ const Product = ({ product: { image, name, slug, price } }) => {
             height={250}
             className="product-image"
           />
-          <p className="product-name">{name}</p>
+          <p className="product-name">
+            {name.length > 25 ? `${name.slice(0, 26)}...` : name}
+          </p>
           <p className="product-price">${`${numeral(price).format('0,0')}`}</p>
         </div>
       </Link>
